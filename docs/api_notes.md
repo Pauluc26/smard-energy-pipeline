@@ -85,3 +85,4 @@ Consequence: hourly aggregates are comparable over the full history; quarter-hou
 - Values are MWh **per quarter hour**. Multiply by 4 for average power in MW (e.g. solar peak 14,627 MWh ≈ 58.5 GW).
 - The price hits the market floor of −500 €/MWh; 10,161 quarter hours with negative prices since October 2018.
 - **Next-day prices** were not on SMARD yet at 16:00 German time, although the auction closes at 12:00. The daily job therefore runs in the early morning (05:00 UTC), when the current day's prices are certainly there. The exact publication time is still to be checked.
+- **The newest quarter hours are provisional.** SMARD revises them within minutes. In the first GitHub Actions run, the backfill took 39 minutes; wind was loaded at 15:18 and residual load at 15:29, and in between the newest value was revised, so residual load ≠ load − wind − solar for that one quarter hour. The identity tests therefore skip the last 3 hours, which the next run re-loads anyway.
