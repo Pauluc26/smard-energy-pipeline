@@ -14,10 +14,10 @@ A pipeline that pulls German electricity market data from SMARD (Bundesnetzagent
 - Language: English
 - Storage grain: quarter hour, timestamps in UTC; conversion to Europe/Berlin only in the marts and the dashboard
 - History: from 1 October 2018 (start of the DE-LU bidding zone), so the price series is consistent
-- Raw layer: Parquet files, partitioned by series and month, committed to the repo by the daily job (simple and free; revisit if the repo grows beyond ~200 MB)
+- Raw layer: Parquet files, partitioned by series and month. They live on a separate `data` branch that the daily job force-pushes as a single commit, together with the exported marts. (Committing them to `main` was the first plan, but the current month's files change daily: ~1 MB of new history per day, 300–400 MB per year.)
 - Transformation: dbt with DuckDB (`dbt-duckdb`), layers `staging → intermediate → marts`
-- Orchestration: GitHub Actions on a daily schedule, plus manual trigger
-- Dashboard: Streamlit, deployed on Streamlit Community Cloud, reading the marts
+- Orchestration: GitHub Actions, daily at 05:00 UTC plus manual trigger. Data is only published when all tests pass; a failed day heals itself on the next run
+- Dashboard: Streamlit, deployed on Streamlit Community Cloud, reading the exported marts (Parquet) from the `data` branch
 - Python 3.12, one-command workflow via `make`
 
 ## In scope

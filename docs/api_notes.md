@@ -58,7 +58,7 @@ Generation and consumption values are MWh per interval.
 - All available from 2014-12-28, in all resolutions.
 - Consistency checked: 123 + 3791 + 125 = 5097 (e.g. 2299.07 + 1585.99 + 0.00 = 3885.06). Usable as a data-quality test.
 - Filter 126 is in the enum without a description and returns exactly −5097. Not used.
-- Still to check: at what time of day the forecast for the next day is published (matters for the daily schedule and for the forecast step).
+- Still to check: at what time of day the forecast for the next day is published (matters for the forecast step).
 
 ## Coverage (index, quarterhour, region DE)
 
@@ -84,3 +84,4 @@ Consequence: hourly aggregates are comparable over the full history; quarter-hou
 - **Residual load** has 3 null quarter hours in the middle of the history: real gaps, kept on purpose.
 - Values are MWh **per quarter hour**. Multiply by 4 for average power in MW (e.g. solar peak 14,627 MWh ≈ 58.5 GW).
 - The price hits the market floor of −500 €/MWh; 10,161 quarter hours with negative prices since October 2018.
+- **Next-day prices** were not on SMARD yet at 16:00 German time, although the auction closes at 12:00. The daily job therefore runs in the early morning (05:00 UTC), when the current day's prices are certainly there. The exact publication time is still to be checked.

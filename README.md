@@ -1,5 +1,8 @@
 # SMARD Energy Pipeline
 
+[![pipeline](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/pipeline.yml)
+[![tests](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/tests.yml)
+
 > Work in progress. Scope and decisions: [`SCOPE.md`](SCOPE.md).
 
 A daily-updating data pipeline for the German electricity market. It pulls generation by source, consumption and day-ahead prices from [SMARD](https://www.smard.de) (Bundesnetzagentur), models them in DuckDB with dbt and feeds a dashboard that asks: **how much do wind and solar push down the electricity price, and when do they push it below zero?**
@@ -7,10 +10,13 @@ A daily-updating data pipeline for the German electricity market. It pulls gener
 ## Planned architecture
 
 ```
-SMARD API ──► src/ingest (Python) ──► data/raw/*.parquet ──► dbt + DuckDB ──► marts ──► Streamlit dashboard
-                     ▲                                          │
-                     └──────── GitHub Actions, daily ───────────┘ tests
+SMARD API ──► src/ingest (Python) ──► data/raw/*.parquet ──► dbt + DuckDB ──► data/marts/*.parquet ──► dashboard
+                                              │                       │ 27 tests            │
+                                              └────────── data branch (one commit, force-pushed) ┘
+                         GitHub Actions runs all of it daily at 05:00 UTC
 ```
+
+The daily job (`.github/workflows/pipeline.yml`): pull the stored data from the `data` branch → load new data → build and test the models → export the marts → publish. Nothing is published if a test fails, and the next run re-loads the missed days.
 
 ## Project structure
 
@@ -27,6 +33,7 @@ smard-energy-pipeline/
 │   ├── seeds/series.csv   # series metadata + data-quality thresholds (shared with src/)
 │   ├── models/            #   staging → intermediate → marts (quarter hour, hour, day)
 │   └── tests/             #   data tests (gaps, ranges, freshness, physical identities)
+├── scripts/data_branch.sh  # pull / push the data branch
 ├── tests/            # unit tests on recorded API responses (no network)
 ├── data/raw/         # series=<id>/month=<YYYY-MM>.parquet, written by the pipeline
 ├── dashboard/        # Streamlit app
@@ -37,10 +44,12 @@ smard-energy-pipeline/
 
 ```bash
 make install
+make pull-data  # get the published data (instead of a 25-min backfill)
 make test       # 21 unit tests, no network
-make backfill   # full history since Oct 2018, ~25 min
+make backfill   # or: full history from SMARD since Oct 2018, ~25 min
 make update     # re-load the last two weeks
 make transform  # dbt: build the models and run 27 data tests (~10 s)
+make export     # marts as Parquet for the dashboard
 ```
 
 How the loading works:

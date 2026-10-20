@@ -2,7 +2,7 @@
 PYTHON ?= python3
 DBT ?= dbt
 
-.PHONY: help install test backfill update transform pipeline clean
+.PHONY: help install test backfill update transform export pipeline pull-data clean
 
 help:
 	@echo "make install   install Python packages"
@@ -10,7 +10,9 @@ help:
 	@echo "make backfill  load the full history from SMARD into data/raw (takes ~25 min)"
 	@echo "make update    re-load the last two weeks (first part of the daily job)"
 	@echo "make transform build the DuckDB models with dbt and run the data tests"
-	@echo "make pipeline  update + transform (what the daily job runs)"
+	@echo "make export    write the marts as Parquet to data/marts (for the dashboard)"
+	@echo "make pipeline  update + transform + export (what the daily job runs)"
+	@echo "make pull-data download the published data from the data branch (instead of a backfill)"
 	@echo "make clean     remove the local database and caches"
 
 install:
@@ -28,7 +30,13 @@ update:
 transform:
 	cd transform && $(DBT) build --profiles-dir .
 
-pipeline: update transform
+export:
+	$(PYTHON) -m src.export
+
+pipeline: update transform export
+
+pull-data:
+	scripts/data_branch.sh pull
 
 clean:
 	rm -f data/processed/*.duckdb data/processed/*.duckdb.wal

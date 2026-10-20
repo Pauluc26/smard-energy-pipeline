@@ -8,6 +8,7 @@ __pycache__/
 # the database is rebuilt from it
 data/raw/*
 !data/raw/.gitkeep
+data/marts/
 data/processed/*
 !data/processed/.gitkeep
 *.duckdb

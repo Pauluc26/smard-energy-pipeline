@@ -1,0 +1,63 @@
+name: pipeline
+
+# Daily run: load new SMARD data, rebuild and test the models, publish the data.
+# Data is only published when every test passes. A failed day heals itself on the
+# next run, because `update` re-loads from two weeks before the newest stored value.
+
+on:
+  schedule:
+    - cron: "0 5 * * *"  # 05:00 UTC = 06:00/07:00 German time; today's prices are out by then
+  workflow_dispatch:
+
+permissions:
+  contents: write  # push to the data branch
+
+concurrency:
+  group: pipeline  # never two runs writing the data branch at once
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # the very first run backfills the full history (~25 min)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Get stored data from the data branch
+        run: scripts/data_branch.sh pull
+
+      - name: Load new data from SMARD
+        run: make update
+
+      - name: Build models and run data tests
+        run: make transform
+
+      - name: Export marts for the dashboard
+        run: make export
+
+      - name: Publish data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          scripts/data_branch.sh push
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Pipeline run"
+            echo
+            echo '```'
+            python -c "
+          import duckdb
+          print(duckdb.sql(\"select max(date_local) as newest_day, round(avg(price_base), 1) as avg_price_last_7d, sum(negative_price_hours) as negative_hours_last_7d from read_parquet('data/marts/fct_days.parquet') where date_local >= current_date - 7\"))
+          " || echo "no marts available"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
