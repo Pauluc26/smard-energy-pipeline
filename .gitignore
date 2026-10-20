@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Data: raw Parquet lives on the separate `data` branch (written by the daily job),
+# the database is rebuilt from it
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.duckdb
+*.duckdb.wal
+
+# dbt
+target/
+dbt_packages/
+logs/
