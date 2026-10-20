@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: smard
+    description: Raw Parquet files written by src/ingest.py, one per series and UTC month.
+    tables:
+      - name: observations
+        config:
+          meta:
+            external_location: "read_parquet('{{ var('raw_path') }}/series=*/*.parquet', hive_partitioning = false)"
+        columns:
+          - name: series_id
+          - name: ts_utc
+          - name: value

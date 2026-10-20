@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: int_quarter_hours_wide
+    description: Complete quarter-hour time axis (UTC), one column per series. Missing data shows up as null.
+    columns:
+      - name: ts_utc
+        data_tests: [unique, not_null]
+
+  - name: fct_quarter_hours
+    description: Quarter-hour facts with German local time. Energy in MWh per quarter hour, price in € / MWh.
+    columns:
+      - name: ts_utc
+        data_tests: [unique, not_null]
+      - name: price_day_ahead
+        description: Day-ahead price DE-LU. Before 1 Oct 2025 each hourly price is repeated 4 times.
+        data_tests: [not_null]
+      - name: is_complete
+        description: True when all actual generation and load values are published.
+
+  - name: fct_hours
+    description: Hourly aggregates, comparable over the full history. Energy in MWh per hour.
+    columns:
+      - name: hour_utc
+        data_tests: [unique, not_null]
+      - name: quarter_hours
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [4]
+                quote: false
+
+  - name: fct_days
+    description: Daily summary in German local time. Energy in GWh per day.
+    columns:
+      - name: date_local
+        data_tests: [unique, not_null]
+      - name: hours
+        description: 23 or 25 on clock-change days; the newest day can still be partial.
+      - name: price_peak
+        description: Average price 08:00-20:00 on weekdays (exchange definition); null on weekends.
+
+unit_tests:
+  - name: fct_days_handles_clock_change_and_negative_prices
+    description: A 25-hour autumn day is one day, and negative hours are counted.
+    model: fct_days
+    given:
+      - input: ref('fct_hours')
+        rows:
+          - {date_local: 2025-10-26, hour_of_day_local: 2, price_day_ahead: -5.0, generation_renewable: 900, grid_load: 1000, is_complete: true}
+          - {date_local: 2025-10-26, hour_of_day_local: 2, price_day_ahead: -1.0, generation_renewable: 900, grid_load: 1000, is_complete: true}
+          - {date_local: 2025-10-26, hour_of_day_local: 3, price_day_ahead: 30.0, generation_renewable: 300, grid_load: 1000, is_complete: true}
+    expect:
+      rows:
+        - {date_local: 2025-10-26, hours: 3, negative_price_hours: 2, price_base: 8.0, renewable_share_of_load: 0.7, is_complete: true}

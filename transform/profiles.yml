@@ -1,0 +1,13 @@
+smard:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/processed/smard.duckdb
+      threads: 4
+      settings:
+        # Without this, DuckDB truncates timestamps in the machine's time zone. On a
+        # German laptop the two 02:00 hours of the autumn clock change then merge into
+        # one, while CI (UTC) gives a different result. Local time is only ever
+        # derived explicitly with timezone('Europe/Berlin', ...).
+        TimeZone: UTC

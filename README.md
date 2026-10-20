@@ -23,6 +23,10 @@ smard-energy-pipeline/
 │   ├── smard.py      #   API client (retries, throttling) and chunk parsing
 │   ├── storage.py    #   Parquet raw layer with idempotent upserts
 │   └── ingest.py     #   backfill / update entry point
+├── transform/        # dbt project (DuckDB)
+│   ├── seeds/series.csv   # series metadata + data-quality thresholds (shared with src/)
+│   ├── models/            #   staging → intermediate → marts (quarter hour, hour, day)
+│   └── tests/             #   data tests (gaps, ranges, freshness, physical identities)
 ├── tests/            # unit tests on recorded API responses (no network)
 ├── data/raw/         # series=<id>/month=<YYYY-MM>.parquet, written by the pipeline
 ├── dashboard/        # Streamlit app
@@ -35,7 +39,8 @@ smard-energy-pipeline/
 make install
 make test       # 21 unit tests, no network
 make backfill   # full history since Oct 2018, ~25 min
-make update     # re-load the last two weeks (the daily job)
+make update     # re-load the last two weeks
+make transform  # dbt: build the models and run 27 data tests (~10 s)
 ```
 
 How the loading works:
@@ -43,7 +48,8 @@ How the loading works:
 - **Incremental:** `update` re-loads from two weeks before the newest stored value. That picks up SMARD's late corrections and closes gaps if runs were missed.
 - **Idempotent:** writes are upserts on `(series_id, ts_utc)`, so running the same load twice leaves the files byte-identical.
 - **Robust:** retries with backoff on transient HTTP errors; one failing series does not stop the others, but the run exits with an error.
-- **Time:** everything is stored in UTC at quarter-hour grain. Clock-change weeks (668 / 676 quarter hours) need no special handling that way.
+- **Tested data:** dbt checks uniqueness, a gap-free 15-minute axis, plausible ranges and freshness per series, and two physical identities (forecast parts add up to the total; residual load = load − wind − solar).
+- **Time:** everything is stored in UTC at quarter-hour grain. Clock-change weeks (668 / 676 quarter hours) need no special handling that way. The DuckDB session is pinned to UTC too, otherwise `date_trunc` follows the machine's time zone and results differ between a laptop and CI.
 
 ## Data
 

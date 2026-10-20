@@ -1,0 +1,30 @@
+name: smard
+version: "1.0.0"
+config-version: 2
+profile: smard
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+vars:
+  # relative to transform/, where dbt is run from (see Makefile)
+  raw_path: "../data/raw"
+  # quarter-hour prices exist from this day on; before, each hourly price is repeated 4x
+  quarter_hour_prices_from: "2025-10-01"
+
+seeds:
+  smard:
+    series:
+      +column_types:
+        series_id: integer
+        ended_on: date
+
+models:
+  smard:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table

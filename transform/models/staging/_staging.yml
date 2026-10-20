@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_smard__observations
+    description: Long format, one row per series and quarter hour (UTC). Values are € / MWh for the price and MWh per quarter hour for everything else.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [series_id, ts_utc]
+      - value_within_series_range
+      - no_gaps_in_time_axis
+      - series_is_fresh:
+          config:
+            tags: [freshness]
+    columns:
+      - name: series_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('series')
+                field: series_id
+      - name: ts_utc
+        data_tests: [not_null]

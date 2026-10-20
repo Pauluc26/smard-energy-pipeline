@@ -1,8 +1,10 @@
 # Tested with Python 3.12. Upper bounds guard against breaking major releases.
-# Further packages (dbt-duckdb, streamlit, plotly) are added in the steps that need them.
+# Further packages (streamlit, plotly) are added in the steps that need them.
 requests>=2.31,<3
 pandas>=2.1,<4
 pyarrow>=15,<30
 duckdb>=1.0,<2
 pytest>=8.0,<10
-pytz>=2024.1  # duckdb needs it to return time-zone-aware timestamps to Python
+dbt-core>=1.10,<2  # dbt v1; v2 is out, but dbt-duckdb targets v1
+dbt-duckdb>=1.9,<2
+pytz>=2024.1,<2030  # duckdb needs it to return time-zone-aware timestamps to Python

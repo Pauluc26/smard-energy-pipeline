@@ -17,3 +17,6 @@ data/processed/*
 target/
 dbt_packages/
 logs/
+
+# dbt keeps an anonymous user id here
+.user.yml
