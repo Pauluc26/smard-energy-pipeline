@@ -34,6 +34,7 @@ smard-energy-pipeline/
 │   ├── models/            #   staging → intermediate → marts (quarter hour, hour, day)
 │   └── tests/             #   data tests (gaps, ranges, freshness, physical identities)
 ├── scripts/data_branch.sh  # pull / push the data branch
+├── notebooks/01_explore.ipynb  # exploration: finding the story for the dashboard
 ├── tests/            # unit tests on recorded API responses (no network)
 ├── data/raw/         # series=<id>/month=<YYYY-MM>.parquet, written by the pipeline
 ├── dashboard/        # Streamlit app
