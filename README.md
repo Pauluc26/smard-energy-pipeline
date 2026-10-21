@@ -3,9 +3,15 @@
 [![pipeline](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/pipeline.yml)
 [![tests](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/Pauluc26/smard-energy-pipeline/actions/workflows/tests.yml)
 
+**[→ Open the live dashboard](https://smard-energy-pipeline-v1.streamlit.app)** (updated daily; on the free tier it may need ~30 s to wake up)
+
 A daily-updating data pipeline for the German electricity market. It pulls generation by source, consumption and day-ahead prices from [SMARD](https://www.smard.de) (Bundesnetzagentur), models them in DuckDB with dbt and feeds a dashboard that asks: **how much do wind and solar push down the electricity price, and when do they push it below zero?**
 
-## Planned architecture
+Why this project: German power prices now go negative several hundred hours a year. Explaining when and why needs data that is reliable and fresh every day, so the focus here is the engineering around the analysis: incremental loading, data tests and a scheduled pipeline.
+
+[![Dashboard: negative-price hours per year, renewable share, key figures](docs/img/dashboard.jpg)](https://smard-energy-pipeline-v1.streamlit.app)
+
+## Architecture
 
 ```
 SMARD API ──► src/ingest (Python) ──► data/raw/*.parquet ──► dbt + DuckDB ──► data/marts/*.parquet ──► dashboard
