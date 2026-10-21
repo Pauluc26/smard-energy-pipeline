@@ -1,5 +1,4 @@
 # Tested with Python 3.12. Upper bounds guard against breaking major releases.
-# Further packages (streamlit, plotly) are added with the dashboard.
 requests>=2.31,<3
 pandas>=2.1,<4
 pyarrow>=15,<30
@@ -11,3 +10,6 @@ pytz>=2024.1,<2030  # duckdb needs it to return time-zone-aware timestamps to Py
 matplotlib>=3.8,<4  # exploration notebook
 jupyter>=1.0,<2
 ipykernel>=6.25,<8
+# dashboard (Streamlit Cloud installs only dashboard/requirements.txt)
+streamlit>=1.46,<2
+plotly>=5.18,<8

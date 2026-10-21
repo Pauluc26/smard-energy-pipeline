@@ -21,3 +21,6 @@ logs/
 
 # dbt keeps an anonymous user id here
 .user.yml
+
+# local editor / agent settings
+.claude/

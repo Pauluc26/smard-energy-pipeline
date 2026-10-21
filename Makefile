@@ -2,7 +2,7 @@
 PYTHON ?= python3
 DBT ?= dbt
 
-.PHONY: help install test backfill update transform export pipeline pull-data clean
+.PHONY: help install test backfill update transform export pipeline pull-data dashboard clean
 
 help:
 	@echo "make install   install Python packages"
@@ -13,6 +13,7 @@ help:
 	@echo "make export    write the marts as Parquet to data/marts (for the dashboard)"
 	@echo "make pipeline  update + transform + export (what the daily job runs)"
 	@echo "make pull-data download the published data from the data branch (instead of a backfill)"
+	@echo "make dashboard start the Streamlit dashboard on http://localhost:8501"
 	@echo "make clean     remove the local database and caches"
 
 install:
@@ -37,6 +38,9 @@ pipeline: update transform export
 
 pull-data:
 	scripts/data_branch.sh pull
+
+dashboard:
+	$(PYTHON) -m streamlit run dashboard/app.py
 
 clean:
 	rm -f data/processed/*.duckdb data/processed/*.duckdb.wal
